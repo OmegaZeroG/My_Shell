@@ -1,3 +1,18 @@
-.exe*.exe
+# Compiled binaries
+*.exe
 *.o
-main
+*.out
+a.out
+my_shell
+
+# Build artifacts
+*.d
+
+# Editor/IDE files
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
