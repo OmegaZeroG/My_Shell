@@ -6,7 +6,8 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-#define MAX_INPUT 1024    
+#define MAX_INPUT 1024  
+ 
 
 char** parse_input(char* input);
 void free_tokens(char** tokens);
@@ -25,8 +26,9 @@ char** command_setenv(char** args,char** env);
 char** command_unsetenv(char** args,char** env);
 
 //Helpers
-
+int my_strncmp(const char* str1,const char* str2,size_t n);
 int my_strcmp(const char* str1,const char* str2);
-
+int my_strlen(const char* str);
+char* my_getenv(const char* name,char** env);
 
 #endif

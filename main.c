@@ -12,7 +12,8 @@
 //manage Path
 //Error Handling
 
-//echo, cd , pwd, echo,env,setenv,unsetenv,which,exit
+//BuiltINS-echo, cd , pwd, echo,env,setenv,unsetenv,which,exit
+//Binary- ls,cat
 int shell_buildins(char** args, char** env, char* initial_directory){
     
     (void)env;
@@ -21,17 +22,17 @@ int shell_buildins(char** args, char** env, char* initial_directory){
 
     if(my_strcmp(args[0],"cd")==0 ){
         
-        // return command_cd(args,initial_directory);
+        return command_cd(args,initial_directory);
     }
     else if(my_strcmp(args[0],"pwd")==0){
         
-        // command_pwd();
+        return command_pwd();
     }
     else if(my_strcmp(args[0],"echo")== 0){
-        // command_echo(args,env);
+         command_echo(args,env);
     }
     else if(my_strcmp(args[0],"env")== 0){
-        // command_env(env);
+        command_env(env);
     }
     else if(my_strcmp(args[0],"which")== 0){
         // command_which(args,env);
@@ -41,7 +42,7 @@ int shell_buildins(char** args, char** env, char* initial_directory){
         exit(EXIT_SUCCESS);
     }
     else{
-        
+        // executor();
         // NOT A BUILT IN COMMAND
     }
     
