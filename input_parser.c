@@ -17,10 +17,15 @@ char** parse_input (char* input){
     }
 
     for(size_t i=0; input[i];i++){
-        
+        //skiping white space caharacters
+        while(input[i]==' '|| input[i]=='\n' ||input[i]=='\t'|| input[i]=='\a'){
+            i++;
+        }
+        if(input[i] == '\0') break;
+
         token = &input[i];
 
-        while(input[i] && input[i] !=' '){
+        while(input[i] && input[i] !=' ' &&  input[i]!='\n' &&input[i]!='\t'&& input[i]!='\a'){
             token_length++;
             i++;
         }
@@ -44,4 +49,17 @@ char** parse_input (char* input){
     tokens[position] =NULL; //terminate the array with NULL 
 
     return tokens;
+}
+
+// Free Allocated Tokens
+
+void free_tokens(char** tokens){
+    if(tokens){
+        return;
+    }
+    for(int i=0;tokens[i];i++){
+        free(tokens[i]); // free each token 
+    }
+
+    free(tokens); // free array
 }

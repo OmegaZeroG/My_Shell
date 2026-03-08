@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include "my_shell.h"
 
+
 //shell loop
 //input parsing
 //commands execution ex- cd , pwd, echo,env,setenv,unsetenv,which,,exit
@@ -11,11 +12,49 @@
 //manage Path
 //Error Handling
 
+//echo, cd , pwd, echo,env,setenv,unsetenv,which,exit
+int shell_buildins(char** args, char** env, char* initial_directory){
+    
+    (void)env;
+    (void)initial_directory;
+    
+
+    if(my_strcmp(args[0],"cd")==0 ){
+        
+        // return command_cd(args,initial_directory);
+    }
+    else if(my_strcmp(args[0],"pwd")==0){
+        
+        // command_pwd();
+    }
+    else if(my_strcmp(args[0],"echo")== 0){
+        // command_echo(args,env);
+    }
+    else if(my_strcmp(args[0],"env")== 0){
+        // command_env(env);
+    }
+    else if(my_strcmp(args[0],"which")== 0){
+        // command_which(args,env);
+    }
+    else if(my_strcmp(args[0],"exit") == 0 || my_strcmp(args[0],"quit")== 0){
+        //printf("BYII");
+        exit(EXIT_SUCCESS);
+    }
+    else{
+        
+        // NOT A BUILT IN COMMAND
+    }
+    
+}
+
+
+
 void shell_loop(char** env){
     char* input  = NULL;
     size_t input_size =0;
 
     char** args;
+    char* initial_directory = getcwd(NULL,0);
 
     while(1){
         printf("[my_shell]$ ");
@@ -32,10 +71,15 @@ void shell_loop(char** env){
 
         args = parse_input(input);
 
-        for(int i=0;args[i];i++){
-            printf("ARGS: %s\n",args[i]);
+        // for(int i=0;args[i];i++){
+        //     printf("ARGS: %s\n",args[i]);
+        // }
+
+        if(args[0] != NULL){
+            shell_buildins(args,env,initial_directory);
         }
     }
+    free_tokens(args);
     free(input);
 }
 
@@ -43,6 +87,7 @@ int main(int argc, char** argv, char** env){
     
     (void)argc;
     (void)argv;
+    (void)env;
 
     shell_loop(env);
 

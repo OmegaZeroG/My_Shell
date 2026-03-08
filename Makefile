@@ -1,5 +1,5 @@
-TARGET = my_shell.exe
-OBJ = main.c input_parser.c
+TARGET = my_shell
+OBJ = main.c input_parser.c helpers.c
 CC = gcc
 
 all:
