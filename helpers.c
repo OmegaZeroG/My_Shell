@@ -50,3 +50,47 @@ char* my_getenv(const char* name,char** env){
     }
     return NULL;
 }
+
+// Helper for setEnv
+
+int count_env_vars(char** env){
+    int count =0;
+    while(env[count]){
+        count++;
+    }
+    return count;
+}
+
+char* my_strdup(const char* str) {
+    if (str == NULL)
+        return NULL;
+
+    size_t len = 0;
+    while (str[len])      // find length
+        len++;
+
+    char* copy = malloc((len + 1) * sizeof(char));
+    if (!copy) {
+        perror("malloc");
+        return NULL;
+    }
+
+    for (size_t i = 0; i <= len; i++)  // copy including '\0'
+        copy[i] = str[i];
+
+    return copy;
+}
+
+
+char* my_strchr(const char* str, int c) {
+    while (*str) {
+        if (*str == (char)c)
+            return (char*)str;
+        str++;
+    }
+    // Check for null terminator search
+    if ((char)c == '\0')
+        return (char*)str;
+
+    return NULL;
+}

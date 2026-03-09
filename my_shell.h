@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stddef.h>
 
 #define MAX_INPUT 1024  
@@ -30,5 +31,7 @@ int my_strncmp(const char* str1,const char* str2,size_t n);
 int my_strcmp(const char* str1,const char* str2);
 int my_strlen(const char* str);
 char* my_getenv(const char* name,char** env);
-
+int count_env_vars(char** env);
+char* my_strdup(const char* str);
+char* my_strchr(const char* str, int c);
 #endif

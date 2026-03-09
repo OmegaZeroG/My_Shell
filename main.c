@@ -75,10 +75,19 @@ void shell_loop(char** env){
         // for(int i=0;args[i];i++){
         //     printf("ARGS: %s\n",args[i]);
         // }
-
-        if(args[0] != NULL){
+        if(!args[0]){
+            return;
+        }else if(my_strcmp(args[0],"setenv") == 0){
+            env = command_setenv(args,env);
+        }
+        else if(my_strcmp(args[0],"unsetenv") == 0){
+            env = command_unsetenv(args,env);
+        }
+        else{
             shell_buildins(args,env,initial_directory);
         }
+
+        
     }
     free_tokens(args);
     free(input);
