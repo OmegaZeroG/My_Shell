@@ -13,7 +13,7 @@ int my_strcmp(const char* str1,const char* str2){
     return *(unsigned char*)str1 -*(unsigned char*)str2;
 }
 
-int my_strlen(const char* str){
+size_t my_strlen(const char* str){
     size_t len =0;
     while(*str){
         len++;

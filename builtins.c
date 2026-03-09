@@ -5,7 +5,7 @@ int command_cd(char** args,char* inital_dir){
         printf("cd: expected argument\"cd[direcotry]\"\n");
     }
     else if(chdir(args[1]) == 0){
-        printf("CD working!\n");
+
     }    
     else{perror("CD");}
     
@@ -15,7 +15,6 @@ int command_cd(char** args,char* inital_dir){
 
 int command_pwd(){
     char* cwd =NULL;
-    size_t size =0;
 
     //dynamic allocation
     cwd = getcwd(NULL,0);
@@ -47,7 +46,7 @@ int command_echo(char** args, char** env) {
             if(value){
                 printf("%s",value);
             }else{
-                printf(" ");
+                printf("");
             }
         } else {
             printf("%s", args[i]);
@@ -150,7 +149,7 @@ char** command_setenv(char** args, char** env) {
     new_env[env_count] = new_var;
     new_env[env_count + 1] = NULL;
 
-    printf("new_env: %s\n",new_var);
+    
 
     return new_env;
 }

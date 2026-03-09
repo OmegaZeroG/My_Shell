@@ -16,8 +16,7 @@
 //Binary- ls,cat
 int shell_buildins(char** args, char** env, char* initial_directory){
     
-    (void)env;
-    (void)initial_directory;
+
     
 
     if(my_strcmp(args[0],"cd")==0 ){
@@ -29,10 +28,10 @@ int shell_buildins(char** args, char** env, char* initial_directory){
         return command_pwd();
     }
     else if(my_strcmp(args[0],"echo")== 0){
-         command_echo(args,env);
+        return command_echo(args,env);
     }
     else if(my_strcmp(args[0],"env")== 0){
-        command_env(env);
+        return command_env(env);
     }
     else if(my_strcmp(args[0],"which")== 0){
         // command_which(args,env);
@@ -45,7 +44,7 @@ int shell_buildins(char** args, char** env, char* initial_directory){
         executor(args , env);
         // NOT A BUILT IN COMMAND
     }
-    
+    return 0;
 }
 
 
@@ -76,7 +75,8 @@ void shell_loop(char** env){
         //     printf("ARGS: %s\n",args[i]);
         // }
         if(!args[0]){
-            return;
+            free_tokens(args);
+            continue;
         }else if(my_strcmp(args[0],"setenv") == 0){
             env = command_setenv(args,env);
         }
@@ -88,8 +88,8 @@ void shell_loop(char** env){
         }
 
         
+        free_tokens(args);
     }
-    free_tokens(args);
     free(input);
 }
 
@@ -97,7 +97,7 @@ int main(int argc, char** argv, char** env){
     
     (void)argc;
     (void)argv;
-    (void)env;
+
 
     shell_loop(env);
 

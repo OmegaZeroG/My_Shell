@@ -88,8 +88,12 @@ char** split_paths(char* paths,int* count){
 
     while(token){
         result = realloc(result, ((*count+1)*sizeof(char*)));
-        if(!result){
+        if (!result) {
             perror("realloc");
+            for (int j = 0; j < *count; j++){
+                free(result[j]);
+            }
+            free(result);
             return NULL;
         }
         result[*count] =my_strdup(token);
