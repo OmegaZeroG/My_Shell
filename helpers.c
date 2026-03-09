@@ -94,3 +94,56 @@ char* my_strchr(const char* str, int c) {
 
     return NULL;
 }
+
+// Tokenizes a string by splitting it based on a set of delimiter characters.
+char* my_strtok(char* input_string, const char* delimiter)
+{
+    static char* next_token = NULL;
+
+    // If input is NULL
+    if (input_string == NULL) {
+        input_string = next_token;
+    }
+    if (input_string == NULL) {
+        return NULL;
+    }
+
+    while (*input_string && my_strchr(delimiter, *input_string)) {
+        input_string++;
+    }
+
+    if (*input_string == '\0') {
+        next_token = NULL;
+        return NULL;
+    }
+
+    char* token = input_string;
+
+    while (*input_string && !my_strchr(delimiter, *input_string)) {
+        input_string++;
+    }
+
+    if (*input_string) {
+        *input_string = '\0';
+        next_token = input_string + 1;
+    } else {
+        next_token = NULL;
+    }
+
+    return token; 
+}
+
+// copy from source to destination
+char* my_strcpy(char* dest,char* src ,size_t n){
+    size_t i;
+
+    for (i = 0; src[i] != '\0'; i++)
+    {
+        dest[i] = src[i];   
+    }
+
+    for(;i<n;i++){
+        dest[i] = '\0';
+    }
+    return dest;
+}

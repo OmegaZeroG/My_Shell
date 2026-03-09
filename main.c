@@ -42,7 +42,7 @@ int shell_buildins(char** args, char** env, char* initial_directory){
         exit(EXIT_SUCCESS);
     }
     else{
-        // executor();
+        executor(args , env);
         // NOT A BUILT IN COMMAND
     }
     
