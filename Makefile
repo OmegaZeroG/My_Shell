@@ -1,5 +1,5 @@
 TARGET = my_shell
-OBJ = main.c input_parser.c helpers.c builtins.c executor.c
+OBJ = main.c input_parser.c helpers.c builtins.c executor.c history.c
 CC = gcc
 
 all:

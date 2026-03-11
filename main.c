@@ -56,20 +56,33 @@ void shell_loop(char** env){
     char** args;
     char* initial_directory = getcwd(NULL,0);
 
+    History hist;
+    history_init(&hist);
+
     while(1){
         printf("[my_shell]$ ");
         fflush(stdout);
 
-        ssize_t byte_read = getline(&input,&input_size,stdin);
+        // read_input handles arrow keys, backspace, Ctrl+D
+        char* input = read_input(&hist);
 
-        if( byte_read == -1){
+        if (!input) {
+            // EOF (Ctrl+D)
             printf("\n");
             break;
-        } //End of the file (EOF), ctrl + Z (windows) and ctrl + D (linus/mac)
+        }
 
-        // printf("Input: %s",input);
+        if (input[0] == '\0') {
+            free(input);
+            continue;
+        }
+
+        // Save to history
+        history_add(&hist, input);
 
         args = parse_input(input);
+        free(input);
+
 
         // for(int i=0;args[i];i++){
         //     printf("ARGS: %s\n",args[i]);
@@ -90,7 +103,9 @@ void shell_loop(char** env){
         
         free_tokens(args);
     }
-    free(input);
+    history_free(&hist);
+    free(initial_directory);
+
 }
 
 int main(int argc, char** argv, char** env){

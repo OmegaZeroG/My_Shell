@@ -7,11 +7,19 @@
 #include <sys/types.h>
 #include <stddef.h>
 #include <sys/wait.h>
+#include <termios.h> 
 
 #define MAX_INPUT 1024  
-#define MAX_PATH_LEN 256  
+#define MAX_PATH_LEN 256
+#define HISTORY_SIZE 100 
 
- 
+
+typedef struct
+{
+    char *commands[HISTORY_SIZE];
+    int count;
+    int current;
+} History;
 
 char** parse_input(char* input);
 void free_tokens(char** tokens);
@@ -39,11 +47,22 @@ int child_process(char** args, char** env);
 //Helpers
 int my_strncmp(const char* str1,const char* str2,size_t n);
 int my_strcmp(const char* str1,const char* str2);
-int my_strlen(const char* str);
+size_t my_strlen(const char* str);
 char* my_getenv(const char* name,char** env);
 int count_env_vars(char** env);
 char* my_strdup(const char* str);
 char* my_strchr(const char* str, int c);
 char* my_strcpy(char* dest,char* src ,size_t n);
 char* my_strtok(char* input_string, const char* delimiter);
+
+
+
+//History
+void history_init(History* hist);
+void history_add(History* hist, char* cmd);
+void history_free(History* hist);
+void enable_raw_mode(struct termios* orig);
+void disable_raw_mode(struct termios* orig);
+char* read_input(History* hist);
+
 #endif
