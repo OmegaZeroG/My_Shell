@@ -1,8 +1,9 @@
 #include "my_shell.h"
 
-int command_cd(char** args,char* inital_dir){
+int command_cd(char** args, char* initial_dir){
     if(args[1] == NULL){
-        printf("cd: expected argument\"cd[direcotry]\"\n");
+        if(chdir(initial_dir) != 0)
+            perror("cd");
     }
     else if(chdir(args[1]) == 0){
 
@@ -31,7 +32,7 @@ int command_pwd(){
 
 //
 int command_echo(char** args, char** env) {
-    // (void)env;
+    
     int new_line = 1;
     int i = 1;
 
@@ -70,12 +71,45 @@ int command_env(char** env){
         printf("%s\n",env[index]);
         index++;
     }
-    // printf("\n");   
+    
     return 0;
 }
 
 
-int command_which(char** args,char** env);
+int command_which(char** args, char** env) {
+    if (!args[1]) {
+        fprintf(stderr, "which: missing argument\n");
+        return 1;
+    }
+    char* path_string = get_path(env);
+    if (!path_string) {
+        fprintf(stderr, "which: PATH not set\n");
+        return 1;
+    }
+    int num_paths;
+    char** path_list = split_paths(path_string, &num_paths);
+    free(path_string);
+    if (!path_list) return 1;
+
+    int found = 0;
+    for (int i = 0; i < num_paths; i++) {
+        size_t len = my_strlen(path_list[i]) + my_strlen(args[1]) + 2;
+        char* full_path = malloc(len);
+        if (!full_path) continue;
+        sprintf(full_path, "%s/%s", path_list[i], args[1]);
+        if (access(full_path, X_OK) == 0) {
+            printf("%s\n", full_path);
+            free(full_path);
+            found = 1;
+            break;
+        }
+        free(full_path);
+    }
+    free_paths(path_list, num_paths);
+    if (!found)
+        fprintf(stderr, "%s: not found\n", args[1]);
+    return !found;
+}
 
 
 // Function to set an env variable
@@ -176,7 +210,14 @@ char** command_unsetenv(char** args, char** env) {
             found = 1;
             // don't copy this one — it's removed
         } else {
-            new_env[j++] = env[i];
+            new_env[j++] = my_strdup(env[i]);
+            if (!new_env[j-1]) {
+                perror("my_strdup");
+                for (int k = 0; k < j-1; k++)
+                    free(new_env[k]);
+                free(new_env);
+                return env;
+            }
         }
     }
 

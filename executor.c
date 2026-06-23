@@ -1,5 +1,12 @@
 #include "my_shell.h"
 
+void free_paths(char** list, int count) {
+    for (int i = 0; i < count; i++)
+        free(list[i]);
+    free(list);
+}
+
+
 // Executes the command by forking and running  it in a child process
 int executor(char** args, char** env) {
     pid_t pid;
@@ -12,7 +19,7 @@ int executor(char** args, char** env) {
     }
 
     if (pid == 0) {
-       
+
         child_process(args, env);
         perror("execve"); 
         exit(EXIT_FAILURE);
@@ -28,7 +35,7 @@ int executor(char** args, char** env) {
     return 0;
 }
 
-int child_process(char** args, char** env) {
+void child_process(char** args, char** env) {
     char* path_string = get_path(env);
     if (!path_string) {
         fprintf(stderr, "PATH not found\n");
@@ -46,7 +53,6 @@ int child_process(char** args, char** env) {
 
     // Try each path directory
     for (int i = 0; i < num_paths; i++) {
-        // Build full path: /usr/bin + / + ls = /usr/bin/ls
         size_t len = my_strlen(path_list[i]) + my_strlen(args[0]) + 2;
         char* full_path = malloc(len);
         if (!full_path) continue;
@@ -54,10 +60,11 @@ int child_process(char** args, char** env) {
         sprintf(full_path, "%s/%s", path_list[i], args[0]);
 
         execve(full_path, args, env);  // if it works, never returns
-        free(full_path);
+        free(full_path);               // only reached if execve fails
     }
 
-    // If we get here, command not found
+    // all paths tried, nothing worked
+    free_paths(path_list, num_paths);
     fprintf(stderr, "%s: command not found\n", args[0]);
     exit(EXIT_FAILURE);
 }
@@ -74,14 +81,15 @@ char* get_path(char** env){
 
 // Split the path into individual parts
 char** split_paths(char* paths,int* count){
-     
+    
     char** result = NULL;
     char* token;
     size_t size_of_path = my_strlen(paths);
-    char paths_copy[size_of_path + 1]; 
-
-    my_strcpy(paths_copy,paths ,sizeof(paths_copy));
-    paths_copy[sizeof(paths_copy)- 1] ='\0';
+    char* paths_copy = malloc(size_of_path + 1);
+    if (!paths_copy)
+        return NULL;
+    my_strcpy(paths_copy, paths, size_of_path + 1);
+    paths_copy[size_of_path] = '\0';
 
     token = my_strtok(paths_copy,":");
     *count =0;   
@@ -90,10 +98,7 @@ char** split_paths(char* paths,int* count){
         result = realloc(result, ((*count+1)*sizeof(char*)));
         if (!result) {
             perror("realloc");
-            for (int j = 0; j < *count; j++){
-                free(result[j]);
-            }
-            free(result);
+            free(paths_copy);
             return NULL;
         }
         result[*count] =my_strdup(token);
@@ -106,6 +111,7 @@ char** split_paths(char* paths,int* count){
         (*count)++;
         token = my_strtok(NULL,":");    
     }
+    free(paths_copy);
 
     return result;
 }

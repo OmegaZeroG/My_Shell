@@ -41,7 +41,7 @@ char** command_unsetenv(char** args,char** env);
 int executor(char**args , char** env);
 char** split_paths(char* paths,int* count);
 char* get_path(char** env);
-int child_process(char** args, char** env);
+void child_process(char** args, char** env);
 
 
 //Helpers

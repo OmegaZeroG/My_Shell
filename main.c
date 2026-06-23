@@ -4,16 +4,7 @@
 #include "my_shell.h"
 
 
-//shell loop
-//input parsing
-//commands execution ex- cd , pwd, echo,env,setenv,unsetenv,which,,exit
-//Execute external commands
-//Manage environment variable
-//manage Path
-//Error Handling
 
-//BuiltINS-echo, cd , pwd, echo,env,setenv,unsetenv,which,exit
-//Binary- ls,cat
 int shell_buildins(char** args, char** env, char* initial_directory){
     
 
@@ -34,10 +25,10 @@ int shell_buildins(char** args, char** env, char* initial_directory){
         return command_env(env);
     }
     else if(my_strcmp(args[0],"which")== 0){
-        // command_which(args,env);
+        return command_which(args,env);
     }
     else if(my_strcmp(args[0],"exit") == 0 || my_strcmp(args[0],"quit")== 0){
-        //printf("BYII");
+        
         exit(EXIT_SUCCESS);
     }
     else{
@@ -50,10 +41,9 @@ int shell_buildins(char** args, char** env, char* initial_directory){
 
 
 void shell_loop(char** env){
-    char* input  = NULL;
-    size_t input_size =0;
 
     char** args;
+    int env_is_heap = 0;
     char* initial_directory = getcwd(NULL,0);
 
     History hist;
@@ -84,17 +74,33 @@ void shell_loop(char** env){
         free(input);
 
 
-        // for(int i=0;args[i];i++){
-        //     printf("ARGS: %s\n",args[i]);
-        // }
+        
         if(!args[0]){
             free_tokens(args);
             continue;
-        }else if(my_strcmp(args[0],"setenv") == 0){
-            env = command_setenv(args,env);
+        } else if(my_strcmp(args[0],"setenv") == 0){
+            char** new_env = command_setenv(args, env);
+            if (new_env != env) {
+                if (env_is_heap) {
+                    for (int i = 0; env[i]; i++)
+                        free(env[i]);
+                    free(env);
+                }
+                env = new_env;
+                env_is_heap = 1;
+            }
         }
         else if(my_strcmp(args[0],"unsetenv") == 0){
-            env = command_unsetenv(args,env);
+            char** new_env = command_unsetenv(args, env);
+            if (new_env != env) {
+                if (env_is_heap) {
+                    for (int i = 0; env[i]; i++)
+                        free(env[i]);
+                    free(env);
+                }
+                env = new_env;
+                env_is_heap = 1;
+            }
         }
         else{
             shell_buildins(args,env,initial_directory);
@@ -105,7 +111,11 @@ void shell_loop(char** env){
     }
     history_free(&hist);
     free(initial_directory);
-
+    if (env_is_heap) {
+        for (int i = 0; env[i]; i++)
+            free(env[i]);
+        free(env);
+    }
 }
 
 int main(int argc, char** argv, char** env){
