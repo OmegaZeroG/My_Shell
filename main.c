@@ -3,63 +3,46 @@
 #include <sys/types.h>
 #include "my_shell.h"
 
-
-
-int shell_buildins(char** args, char** env, char* initial_directory){
-    
-
-    
-
-    if(my_strcmp(args[0],"cd")==0 ){
-        
-        return command_cd(args,initial_directory);
+// Non-interactive fallback (piped/redirected stdin): plain line reading, no
+// raw-mode terminal handling. This is what lets the shell be scripted, e.g.
+//   ./my_shell < tests/commands.txt
+//   echo "pwd" | ./my_shell
+static char* read_line_plain(void) {
+    char* line = NULL;
+    size_t cap = 0;
+    ssize_t len = getline(&line, &cap, stdin);
+    if (len == -1) {
+        free(line);
+        return NULL; // EOF
     }
-    else if(my_strcmp(args[0],"pwd")==0){
-        
-        return command_pwd();
-    }
-    else if(my_strcmp(args[0],"echo")== 0){
-        return command_echo(args,env);
-    }
-    else if(my_strcmp(args[0],"env")== 0){
-        return command_env(env);
-    }
-    else if(my_strcmp(args[0],"which")== 0){
-        return command_which(args,env);
-    }
-    else if(my_strcmp(args[0],"exit") == 0 || my_strcmp(args[0],"quit")== 0){
-        
-        exit(EXIT_SUCCESS);
-    }
-    else{
-        executor(args , env);
-        // NOT A BUILT IN COMMAND
-    }
-    return 0;
+    if (len > 0 && line[len - 1] == '\n')
+        line[len - 1] = '\0';
+    return line;
 }
 
-
-
-void shell_loop(char** env){
-
-    char** args;
+static void shell_loop(char** env) {
     int env_is_heap = 0;
-    char* initial_directory = getcwd(NULL,0);
+    int last_status = 0;
+    char* initial_directory = getcwd(NULL, 0);
+    int interactive = isatty(STDIN_FILENO);
 
     History hist;
     history_init(&hist);
+    setup_parent_signals();
 
-    while(1){
-        printf("[my_shell]$ ");
-        fflush(stdout);
+    while (1) {
+        reap_background_jobs();
 
-        // read_input handles arrow keys, backspace, Ctrl+D
-        char* input = read_input(&hist);
+        if (interactive) {
+            printf("[my_shell]$ ");
+            fflush(stdout);
+        }
+
+        char* input = interactive ? read_input(&hist) : read_line_plain();
 
         if (!input) {
-            // EOF (Ctrl+D)
-            printf("\n");
-            break;
+            if (interactive) printf("\n");
+            break; // EOF (Ctrl+D, or end of piped input)
         }
 
         if (input[0] == '\0') {
@@ -67,48 +50,33 @@ void shell_loop(char** env){
             continue;
         }
 
-        // Save to history
-        history_add(&hist, input);
+        if (interactive)
+            history_add(&hist, input);
 
-        args = parse_input(input);
+        int pipeline_count = 0;
+        Pipeline** pipelines = parse_input(input, &pipeline_count);
         free(input);
 
+        if (!pipelines)
+            continue; // empty input or a syntax error already reported
 
-        
-        if(!args[0]){
-            free_tokens(args);
-            continue;
-        } else if(my_strcmp(args[0],"setenv") == 0){
-            char** new_env = command_setenv(args, env);
-            if (new_env != env) {
-                if (env_is_heap) {
-                    for (int i = 0; env[i]; i++)
-                        free(env[i]);
-                    free(env);
-                }
-                env = new_env;
-                env_is_heap = 1;
+        int skip = 0;
+        for (int i = 0; i < pipeline_count; i++) {
+            Pipeline* p = pipelines[i];
+
+            if (!skip) {
+                expand_pipeline(p, env, last_status);
+                last_status = run_pipeline(p, &env, &env_is_heap, initial_directory);
             }
-        }
-        else if(my_strcmp(args[0],"unsetenv") == 0){
-            char** new_env = command_unsetenv(args, env);
-            if (new_env != env) {
-                if (env_is_heap) {
-                    for (int i = 0; env[i]; i++)
-                        free(env[i]);
-                    free(env);
-                }
-                env = new_env;
-                env_is_heap = 1;
-            }
-        }
-        else{
-            shell_buildins(args,env,initial_directory);
+
+            if (p->connector == 1)      skip = (last_status != 0); // &&
+            else if (p->connector == 2) skip = (last_status == 0); // ||
+            else                         skip = 0;                  // ';' or end of line
         }
 
-        
-        free_tokens(args);
+        free_pipelines(pipelines, pipeline_count);
     }
+
     history_free(&hist);
     free(initial_directory);
     if (env_is_heap) {
@@ -118,14 +86,20 @@ void shell_loop(char** env){
     }
 }
 
-int main(int argc, char** argv, char** env){
-    
+int main(int argc, char** argv, char** env) {
     (void)argc;
     (void)argv;
 
+    // stdout is fully block-buffered whenever it isn't a tty (i.e. any time
+    // output is piped or redirected). Without this, unflushed bytes sitting
+    // in the parent's buffer at fork() time get duplicated into every
+    // child's copy of that buffer and printed again whenever the child
+    // flushes on exit. Line-buffering means every '\n'-terminated printf
+    // (all of ours are) reaches the fd before the next fork() has a chance
+    // to copy stale buffer contents into a child.
+    setvbuf(stdout, NULL, _IOLBF, 0);
 
     shell_loop(env);
 
     return 0;
 }
-
