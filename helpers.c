@@ -134,7 +134,7 @@ char* my_strtok(char* input_string, const char* delimiter)
 }
 
 // copy from source to destination
-char* my_strcpy(char* dest,char* src ,size_t n){
+char* my_strcpy(char* dest,const char* src ,size_t n){
     size_t i;
 
     for (i = 0; src[i] != '\0'; i++)

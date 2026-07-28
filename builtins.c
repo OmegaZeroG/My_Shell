@@ -1,20 +1,16 @@
 #include "my_shell.h"
 
 int command_cd(char** args, char* initial_dir){
-    if(args[1] == NULL){
-        if(chdir(initial_dir) != 0)
-            perror("cd");
+    const char* target = args[1] ? args[1] : initial_dir;
+    if(chdir(target) != 0){
+        perror("cd");
+        return 1;
     }
-    else if(chdir(args[1]) == 0){
-
-    }    
-    else{perror("CD");}
-    
     return 0;
 }
 
 
-int command_pwd(){
+int command_pwd(void){
     char* cwd =NULL;
 
     //dynamic allocation
@@ -30,9 +26,12 @@ int command_pwd(){
     return 0;
 }
 
-//
+// $VAR / $? expansion happens once, up front, in expand_pipeline() (see
+// input_parser.c) before any command runs — so by the time echo sees its
+// args they're already substituted, same as every other command's args.
 int command_echo(char** args, char** env) {
-    
+    (void)env;
+
     int new_line = 1;
     int i = 1;
 
@@ -42,17 +41,7 @@ int command_echo(char** args, char** env) {
     }
 
     for (; args[i]; i++) {
-        if (args[i][0] == '$') {
-            char* value =  my_getenv(args[i]+1,env);
-            if(value){
-                printf("%s",value);
-            }else{
-                printf("");
-            }
-        } else {
-            printf("%s", args[i]);
-        }
-
+        printf("%s", args[i]);
         if (args[i + 1] != NULL)   // space between words, not after last
             printf(" ");
     }
@@ -61,7 +50,6 @@ int command_echo(char** args, char** env) {
         printf("\n");
 
     return 0;
-    
 }
 
 
@@ -96,7 +84,7 @@ int command_which(char** args, char** env) {
         size_t len = my_strlen(path_list[i]) + my_strlen(args[1]) + 2;
         char* full_path = malloc(len);
         if (!full_path) continue;
-        sprintf(full_path, "%s/%s", path_list[i], args[1]);
+        snprintf(full_path, len, "%s/%s", path_list[i], args[1]);
         if (access(full_path, X_OK) == 0) {
             printf("%s\n", full_path);
             free(full_path);
@@ -147,7 +135,7 @@ char** command_setenv(char** args, char** env) {
         size_t len = my_strlen(args[1]) + my_strlen(args[2]) + 2; // +2 for '=' and '\0'
         new_var = malloc(len);
         if (new_var)
-            sprintf(new_var, "%s=%s", args[1], args[2]);
+            snprintf(new_var, len, "%s=%s", args[1], args[2]);
     } else if (my_strchr(args[1], '=') != NULL) {
         // Format: setenv VAR=value  →  already correct format
         new_var = my_strdup(args[1]);
