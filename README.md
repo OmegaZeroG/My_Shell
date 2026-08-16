@@ -1,4 +1,4 @@
-# My Shell 🐚
+# My Shell 
 
 **A POSIX-style Unix shell, written from scratch in C — no `<string.h>`, no
 shell libraries. Just `fork`/`execve`/`pipe`/`dup2`/`sigaction` and a

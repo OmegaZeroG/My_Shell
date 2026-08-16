@@ -90,13 +90,7 @@ int main(int argc, char** argv, char** env) {
     (void)argc;
     (void)argv;
 
-    // stdout is fully block-buffered whenever it isn't a tty (i.e. any time
-    // output is piped or redirected). Without this, unflushed bytes sitting
-    // in the parent's buffer at fork() time get duplicated into every
-    // child's copy of that buffer and printed again whenever the child
-    // flushes on exit. Line-buffering means every '\n'-terminated printf
-    // (all of ours are) reaches the fd before the next fork() has a chance
-    // to copy stale buffer contents into a child.
+    
     setvbuf(stdout, NULL, _IOLBF, 0);
 
     shell_loop(env);
